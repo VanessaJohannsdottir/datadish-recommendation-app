@@ -3,7 +3,7 @@
 ### Willkommen zu unserem Projekt!   
 Dieses Dashboard bietet tiefgehende Einblicke in die Welt der Gastronomie, indem es **Bewertungen** und **Geschäftsdaten** analysiert. Entdecke **Trends**, verstehe **Kundenfeedback** und gewinne **wertvolle** Erkenntnisse!
 
-# WegWeiser - finde Dein passendes Reiseziel im Handumdrehen
+# WegWeiser - finde Dein passendes Restaurant im Handumdrehen
 ### Analyse von Restaurantdaten aus dem [YELP-Dataset](https://business.yelp.com/data/resources/open-dataset/)
 [Samaneh Asghari](https://github.com/samaneh-asghari), [Karlheinz Nerpel](https://github.com/User-1175) & [Vanessa Bletz](https://github.com/VanessaJohannsdottir)
 
