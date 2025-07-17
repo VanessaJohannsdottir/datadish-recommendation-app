@@ -19,6 +19,19 @@ Die Daten wurden bereits bereinigt.
 Details zum Ablauf der Bereinigung sind in der Datei  
 [`README zur Bereinigung`](./cleaning/README.md) zu finden.
 
+
+## 🧠 Training
+
+Der Trainingsdatensatz für die Textklassifikation befindet sich im Ordner  [`data`](./data/).  
+Er enthält:
+
+- den finalen Datensatz [`training_dataset`](./data/training_dataset_104k.zip) mit ca. **104.000 Reviews**  
+- ein ausführliches [`README zur Training`](./training/README.md), das alle Schritte zur Erstellung dokumentiert  
+- alle verwendeten **Scripts**, z. B. für das Sampling  
+
+Die Reviews wurden mit mehreren Sampling-Strategien ausgewählt, um eine gute **Balance zwischen Länge, Sternebewertung und Business-Vielfalt** zu erreichen.  
+Ziel ist es, ein robustes Modell für die spätere automatische Multi-Label-Klassifikation zu trainieren.
+
 ---
 
 ## ALLGEMEIN
