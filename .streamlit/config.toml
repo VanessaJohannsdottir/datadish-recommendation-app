@@ -1,0 +1,15 @@
+[[theme.fontFaces]]
+family="Intro"
+url="app/static/Intro.ttf"
+style="normal"
+weight=400
+[[theme.fontFaces]]
+family="Questrial"
+url="app/static/Questrial-Regular.ttf"
+style="normal"
+weight=400
+
+[theme]
+base="dark"
+primaryColor="#8b0a20"
+font="Questrial"
