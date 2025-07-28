@@ -2,20 +2,17 @@ import sqlite3
 import pandas as pd
 
 def get_cities_and_categories(db_path="yelp.db"):
-    """Lädt alle verfügbaren Städte und Kategorien aus der Datenbank."""
     conn = sqlite3.connect(db_path)
-    city_list = pd.read_sql_query("SELECT DISTINCT city FROM business", conn)
-    category_list = pd.read_sql_query("SELECT DISTINCT category FROM business_categories", conn)
+    df_cities = pd.read_sql_query("SELECT DISTINCT city, state FROM business WHERE city IS NOT NULL AND state IS NOT NULL", conn)
+    df_categories = pd.read_sql_query("SELECT DISTINCT category FROM business_categories", conn)
     conn.close()
 
-    cities = sorted(city_list["city"].dropna().unique().tolist())
-    categories = sorted(category_list["category"].dropna().unique().tolist())
+    df_cities["city_state"] = df_cities["city"] + ", " + df_cities["state"]
+    cities = sorted(df_cities["city_state"].tolist())
+    categories = sorted(df_categories["category"].dropna().unique().tolist())
     return cities, categories
 
-
 def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
-    """Führt die gefilterte Restaurant-Suche durch und liefert ein DataFrame zurück."""
-
     base_query = """
         SELECT 
             b.*, 
@@ -48,16 +45,16 @@ def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
     params = []
 
     if locations:
-        placeholders = ",".join(["?"] * len(locations))
-        conditions.append(f"b.city IN ({placeholders})")
-        params.extend(locations)
+        city_state_pairs = [tuple(loc.split(", ")) for loc in locations]
+        city_state_clauses = []
+        for city, state in city_state_pairs:
+            city_state_clauses.append("(b.city = ? AND b.state = ?)")
+            params.extend([city, state])
+        conditions.append(f"({' OR '.join(city_state_clauses)})")
 
     if categories:
-        placeholders = ",".join(["?"] * len(categories))
-        # Wichtig: bc ist eine Subquery – also binden wir wieder auf bc.category
         conditions.append(f"bc.categories LIKE '%' || ? || '%'")
-        # Nutze LIKE statt IN, weil `categories` ein zusammengesetzter Text ist
-        params.append(categories[0])  # optional erweitern für mehrere Kategorien
+        params.append(categories[0])
 
     if min_rating is not None:
         conditions.append("b.stars >= ?")

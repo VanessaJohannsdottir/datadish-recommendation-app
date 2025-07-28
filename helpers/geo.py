@@ -2,15 +2,15 @@ import sqlite3
 import pandas as pd
 from math import radians, cos, sin, sqrt, atan2
 
-def get_city_coordinates(city, db_path="yelp.db"):
+def get_city_coordinates(city, state, db_path="yelp.db"):
     conn = sqlite3.connect(db_path)
     query = """
         SELECT latitude, longitude 
         FROM business 
-        WHERE city = ? AND latitude IS NOT NULL AND longitude IS NOT NULL 
+        WHERE city = ? AND state = ? AND latitude IS NOT NULL AND longitude IS NOT NULL 
         LIMIT 1
     """
-    result = pd.read_sql_query(query, conn, params=[city])
+    result = pd.read_sql_query(query, conn, params=[city, state])
     conn.close()
 
     if not result.empty:

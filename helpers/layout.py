@@ -52,7 +52,8 @@ def render_header(logo_path, header_path):
 
     ## HEADER STARTSEITE
     header_img = load_pil_image(header_path)
-    st.image(header_img)
+    if not st.session_state.get("show_results"):
+        st.image(header_img)
 
 def render_layout(page_name=None):
     if page_name:
