@@ -98,39 +98,29 @@ if st.session_state.get("show_results"):
         result_df = result_df.dropna(subset=["latitude", "longitude"])
         result_df = filter_by_radius(result_df, center_lat, center_lon, st.session_state["sel_radius"])
 
+        open_now = result_df[result_df["hours"].apply(is_open_now)]
+        closed_now = result_df[~result_df["hours"].apply(is_open_now)]
+
         # ========== Ergebnisse anzeigen ==========
         with st.container():
-            st.title("Gefundene Restaurants")
             if not result_df.empty:
                 if st.button("zurück zur Suche", icon=":material/arrow_back:"):
                     st.session_state["show_results"] = False
                     st.rerun()
 
                 st.title("Gefundene Restaurants")
-                st.write(f"**{len(result_df)} Restaurants im Umkreis von {st.session_state["sel_radius"]} km gefunden.**")
+                total_found = len(open_now) + len(closed_now)
+                st.write(f"**{total_found} Restaurants im Umkreis von {st.session_state['sel_radius']} km um {st.session_state["sel_location"]} gefunden.**")
 
-                for _, row in result_df.iterrows():
-                    is_open = is_open_now(row.get("hours"))
-                    status_label = " 🟢 Jetzt geöffnet" if is_open else " 🔴 Geschlossen"
+                if not open_now.empty:
+                    st.markdown('''**:green[jetzt geöffnet]**''')
+                    for _, row in open_now.iterrows():
+                        render_restaurant_expander(row)
 
-                    with st.expander(f"{row['name']} - {row['city']}, {row['state']}  |  {status_label}"):
-                        st.write(f"{row.get('categories')}")
-
-                        st.write(f"**{row['name']}** ({round(row['distance_km'], 2)} vom Zentrum)")
-
-                        stars = "★" * int(row['stars']) + "☆" * (5 - int(row['stars']))
-                        st.markdown(f"**{stars}** ({row['stars']} Sterne)")
-
-                        st.text(f"{row['address']}")
-
-                        st.write("**Öffnungszeiten:**")
-                        st.text(format_hours(row.get("hours")))
-
-                        if row.get("latitude") and row.get("longitude"):
-                            st.map(pd.DataFrame({
-                                "latitude": [row["latitude"]],
-                                "longitude": [row["longitude"]],
-                            }))
+                if not closed_now.empty:
+                    st.markdown('''**:red[jetzt geschlossen]**''')
+                    for _, row in closed_now.iterrows():
+                        render_restaurant_expander(row)
             else:
                 if st.button("zurück zur Suche", icon=":material/arrow_back:"):
                     st.session_state["show_results"] = False
