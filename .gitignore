@@ -1,9 +1,8 @@
 /logo_wegweiser.png
 *.csv
-*.ipynb
 playground
 /.idea
-
+*__pycache__*
 /mockups/DataDish - Detailseite.jpg
 /mockups/DataDish - Restaurant-Empfehlung.jpg
 

@@ -6,9 +6,18 @@ from helpers.geo import get_city_coordinates, filter_by_radius
 
 import sqlite3
 import pandas as pd
+from reports.load import init_server
+
 
 # ========== Config ==========
 st.set_page_config(page_title="DataDish - Restaurant Finder")
+
+# Diese Funktion ist verantwortlich für das Laden aller CSV-Dateien und Datensätze.
+# Sie muss zu Beginn der Anwendung ausgeführt werden und darf weder entfernt noch verschoben werden.
+# Das Initialisieren kann bis zu 5 Minuten dauern, da umfangreiche Daten verarbeitet werden.
+# Die geladenen Ergebnisse werden zwischengespeichert (Cache), sodass spätere Zugriffe ohne Verzögerung erfolgen können.
+init_server()
+
 render_layout(page_name="index")
 
 if "show_results" not in st.session_state:

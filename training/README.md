@@ -1,75 +1,106 @@
-# Review-Sampling-Strategie – Projektübersicht
+# Trainings- und Vorhersageschritte
 
-In dieser Phase des Projekts war es das Ziel, eine repräsentative, vielfältige und informationsreiche Stichprobe von Bewertungen zu erstellen, die für die manuelle Labelvergabe und das Training eines maschinellen Lernmodells verwendet werden kann. Wir haben drei verschiedene Sampling-Strategien getestet, um eine Teilmenge von ca. 100.000 Bewertungen aus einem Pool von 3 Millionen zu extrahieren. Jede Bewertung ist mit einem bestimmten business_id verknüpft und enthält einen Bewertungstext sowie eine Sternebewertung (1 bis 5 Sterne).
+## Übersicht
 
-Wir haben die drei Ansätze hinsichtlich Fairness, Vielfalt, Informationsgehalt und Umsetzbarkeit verglichen.
-
----
-
-## Option 1: Zufällige 3 %-Stichprobe pro Business
-
-Bei diesem Ansatz wurden 3 % der Bewertungen für jedes Business rein zufällig ausgewählt.
-
-🟢 Vorteile:
-
-- Sehr einfach umzusetzen  
-- Garantiert eine faire Verteilung über alle Businesses hinweg  
-- Schnell und speichereffizient
-
-🔴 Nachteile:
-
-- Bewertungslänge wird nicht berücksichtigt – kurze, wenig informative Texte werden genauso oft gezogen wie lange  
-- Keine Garantie, dass unterschiedliche Sternebewertungen berücksichtigt werden
-
-📎 Code-Referenz: [random_sampling_per_business.py](./random_sampling_per_business.py)
+Dieses Dokument beschreibt den vollständigen Prozess, den wir durchgeführt haben, um einen Trainingsdatensatz zu erstellen, ihn zu labeln, ein Modell zu trainieren und Vorhersagen zu treffen – unter Verwendung eines maßgeschneiderten Multi-Label-Klassifikationsmodells. Unser Workflow stellt Fairness, Ausgewogenheit und Effizienz in jedem Schritt sicher, um hochwertige Ergebnisse zu erzielen.
 
 ---
 
-## Option 2: Länge-basierte gewichtete Stichprobe pro Business
+## Schritt 1: Sampling-Strategie der Reviews
 
-Hier wurden weiterhin 3 % der Bewertungen pro Business gezogen, aber längere Bewertungen wurden mit einer höheren Wahrscheinlichkeit ausgewählt (gewichtetes Sampling basierend auf Textlänge).
+Um eine faire Verteilung aller Bewertungssterne sicherzustellen, haben wir folgende Sampling-Strategie angewendet:
 
-🟢 Vorteile:
+- Proportionale Repräsentation **aller Bewertungssterne (1 bis 5)** innerhalb aller Reviews.
+- Diese Methode führte zu einem **ausgewogenen Datensatz**, der beim Training eine bessere Generalisierung ermöglicht.
 
-- Erhält die businessweite Vielfalt  
-- Bevorzugt aussagekräftige, ausführlichere Bewertungen  
-- Beibehaltung einer gewissen Zufälligkeit
+Zur Optimierung der Trainingseffizienz:
 
-🔴 Nachteile:
+- Wir haben die **Review-Länge auf maximal 256 Tokens** begrenzt.
+- Längere Texte erzeugten oft mehr Rauschen, ohne die Modellleistung zu verbessern.
+- Diese Begrenzung reduzierte auch **Trainingszeit und GPU-Speichernutzung**.
 
-- Keine Gewährleistung für Ausgewogenheit hinsichtlich Sternebewertungen  
-- Businesses mit vielen kurzen Bewertungen können unterrepräsentiert sein
+Insgesamt haben wir **70.000 ausgewogene und gekürzte Reviews** gesammelt.
 
-📎 Code-Referenz: [random_sampling_per_business_by_review_len.py](./random_sampling_per_business_by_review_len.py)
-
----
-
-## Option 3: Stratifiziert nach Sternen + Länge-gewichtetes Sampling pro Business
-
-Dieser finale und gewählte Ansatz kombiniert mehrere Kriterien:
-
-- Die Bewertungen werden zunächst nach Sternebewertung (1–5) aufgeteilt  
-- Es wird versucht, aus jeder Sternkategorie gleich viele Bewertungen zu ziehen (soweit vorhanden)  
-- Innerhalb jeder Sternkategorie erfolgt ein gewichtetes Sampling zugunsten längerer Bewertungen
-
-🟢 Vorteile:
-
-- Stellt sicher, dass alle Sentiment-Bereiche (über Sterne) abgedeckt werden  
-- Bevorzugt inhaltlich reichere Bewertungen  
-- Zufälligkeit bleibt erhalten  
-- Optimal für ein Modell, das auf unterschiedliche Meinungen und Textlängen generalisieren soll
-
-🔴 Nachteile:
-
-- Etwas komplexere Logik erforderlich  
-- Bei sehr einseitiger Sternverteilung pro Business kann die Gleichverteilung nicht immer exakt erreicht werden (wird aber robust gehandhabt)
-
-📎 Code-Referenz: [random_sampling_per_business_by_len_stars.py](./random_sampling_per_business_by_len_stars.py)
+[Codereferenz](./random_sampling_per_business_by_token_stars.py)
 
 ---
 
-## Finale Entscheidung & Begründung
+## Schritt 2: Labeling mit LLM-APIs
 
-Nach sorgfältiger Abwägung aller Vor- und Nachteile fiel die Entscheidung auf Option 3: das stratifizierte und längen-gewichtete Sampling unter Berücksichtigung der Sternebewertung. Dieser Ansatz liefert die qualitativ hochwertigste, ausgewogenste und informativste Stichprobe von ca. 104.000 Bewertungen.
+Um hochwertige Labels für das Training zu generieren, sind wir wie folgt vorgegangen:
 
-Damit ist gewährleistet, dass das zu annotierende Trainingsdatenset ein breites Spektrum an Meinungen und Schreibstilen abdeckt – eine entscheidende Voraussetzung für ein robustes Modell, das auf die restlichen 3 Millionen Bewertungen angewendet werden soll.
+1. **Erster Versuch**:
+   - Wir testeten die **ChatGPT API** mit 5.000 Reviews und einem einfachen Prompt.
+   - Die Genauigkeit war nach manueller Prüfung **nicht zufriedenstellend**.
+   - Trotz unserer klaren Regel, dass nur 20 festgelegte Labels verwendet werden dürfen, hat das Modell **über 140 zusätzliche, nicht definierte Labels** erzeugt – was die Ergebnisse **unbrauchbar** machte.
+
+2. **Verbesserte Strategie**:
+   - Wir entwickelten einen **optimierten Prompt**.
+   - Der Wechsel zur **DeepSeek API** brachte bessere, stabilere und konsistentere Ergebnisse.
+   - Mit DeepSeek und dem verfeinerten Prompt konnten wir **alle 70.000 Reviews erfolgreich labeln**.
+
+[Codereferenz](./deepseek.py)
+
+---
+
+## Schritt 3: Modelltraining
+
+Wir trainierten ein Multi-Label-Klassifikationsmodell mit folgenden Spezifikationen:
+
+- **Basismodell**: RoBERTa (von Facebook AI)
+- **Plattform**: Kaggle (aufgrund leistungsstarker GPU-Ressourcen)
+- **Trainingsdaten**: 70.000 gelabelte Reviews
+- **Trainingsdauer**: ~5 Stunden
+
+Dank der sorgfältigen Auswahl und Bereinigung der Daten erzielte das Modell **ausgezeichnete Evaluierungsergebnisse**.
+
+<p align="left">
+  <img src="./model/progress.jpg" alt="Modellverlauf" width="600"/>
+</p>
+
+### Warum Schritt 5000 gewählt wurde
+
+Sowohl Schritt 4000 als auch 5000 zeigen starke Leistungen, aber **Schritt 5000** wurde aus folgenden Gründen ausgewählt:
+- **Höchster F1 Micro-Wert**: 0.855948 (beste Gesamtgenauigkeit).
+- **Höchster F1 Macro-Wert**: 0.794711 (beste Balance über alle Labels hinweg).
+- **Gutes Verhältnis von Precision & Recall**: bester Recall-Wert aller Schritte.
+- **Stabiler Loss**: Training Loss blieb bei 0.1238, Validation Loss stieg nur minimal.
+
+[Codereferenz](./kaggle_train_notebook.ipynb)  
+[Modell](./model/final_model_70k.zip)
+
+---
+
+## Schritt 4: Review-Vorhersage (Gesamter Datensatz)
+
+Nach dem erfolgreichen Training nutzten wir das Modell zur Vorhersage von **allen 3.500.000 Reviews** im Datensatz:
+
+- Die Reviews wurden **einzeln verarbeitet** und die Vorhersagen in der Datei `review_label.csv` gespeichert.
+- Für Reviews mit **mehr als 256 Tokens** implementierten wir einen **Chunking-Mechanismus**:
+  - Jeder Text wurde in **Chunks à 256 Tokens** aufgeteilt.
+  - Die Vorhersagen erfolgten **chunkweise**, um Informationsverlust zu vermeiden.
+- Wieder setzten wir Kaggle ein, um von der **GPU-Beschleunigung** zu profitieren.
+- **Gesamtdauer der Vorhersage**: ca. 21 Stunden.
+
+Ergebnis: ein vollständig gelabelter Datensatz mit **3,4 Millionen Reviews**, bereit für die Analyse.
+
+- [Codereferenz](./kaggle_peredict_labeling.ipynb)
+- [review_label.zip](../data/review_label.zip)
+
+---
+
+## Zusammenfassung
+
+| Schritt             | Beschreibung                                             |
+|---------------------|----------------------------------------------------------|
+| Sampling            | aller Bewertungssterne (1 bis 5)** innerhalb aller Reviews |
+| Token-Filterung     | Maximal 256 Tokens pro Review                            |
+| Labeling            | DeepSeek API mit verfeinertem Prompt                     |
+| Modell              | Facebook AI RoBERTa                                      |
+| Trainingsplattform  | Kaggle (5 Stunden)                                       |
+| Vorhersage          | Chunked >256 Tokens, 3,4 M Reviews, Kaggle (21 Stunden)  |
+| Output              | `review_label.csv` mit vorhergesagten Labels           |
+
+---
+
+
