@@ -3,9 +3,8 @@ from helpers.layout import render_layout
 from helpers.db import get_cities_and_categories, search_restaurants
 from helpers.time import is_open_now, format_hours
 from helpers.geo import get_city_coordinates, filter_by_radius
-
-import sqlite3
-import pandas as pd
+from helpers.map import render_single_restaurant_map
+from helpers.results import render_restaurant_expander
 
 # ========== Config ==========
 st.set_page_config(
