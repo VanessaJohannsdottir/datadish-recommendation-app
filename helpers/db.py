@@ -40,8 +40,7 @@ def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
             GROUP BY business_id
         ) bh ON b.business_id = bh.business_id
     """
-
-    conditions = ["1=1"]
+    conditions = ["1=1 AND b.is_open = 1"]
     params = []
 
     if locations:

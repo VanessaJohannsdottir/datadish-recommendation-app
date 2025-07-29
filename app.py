@@ -3,22 +3,26 @@ from helpers.layout import render_layout
 from helpers.db import get_cities_and_categories, search_restaurants
 from helpers.time import is_open_now, format_hours
 from helpers.geo import get_city_coordinates, filter_by_radius
+# from helpers.map import render_single_restaurant_map # Es gibt keine map.py-Datei im Ordner helpers. Hebe das Auskommentieren bitte erst auf, nachdem du die Datei hinzugefügt hast.
+from helpers.results import render_restaurant_expander
 
-import sqlite3
-import pandas as pd
 from reports.load import init_server
 
 
 # ========== Config ==========
-st.set_page_config(page_title="DataDish - Restaurant Finder")
+st.set_page_config(
+    page_title="DataDish - Restaurant Finder",
+    initial_sidebar_state="collapsed"
+)
+render_layout(
+    page_name="index"
+)
 
 # Diese Funktion ist verantwortlich für das Laden aller CSV-Dateien und Datensätze.
 # Sie muss zu Beginn der Anwendung ausgeführt werden und darf weder entfernt noch verschoben werden.
 # Das Initialisieren kann bis zu 5 Minuten dauern, da umfangreiche Daten verarbeitet werden.
 # Die geladenen Ergebnisse werden zwischengespeichert (Cache), sodass spätere Zugriffe ohne Verzögerung erfolgen können.
 init_server()
-
-render_layout(page_name="index")
 
 if "show_results" not in st.session_state:
     st.session_state.show_results = False
@@ -27,21 +31,53 @@ if "show_results" not in st.session_state:
 cities, categories = get_cities_and_categories()
 
 prices = ["günstig ($)", "mittel ($$)", "gehoben ($$$)"]
-ratings = ["min. ★☆☆☆☆", "min. ★★☆☆☆", "min. ★★★☆☆", "min. ★★★★☆", "min. ★★★★★"]
+rating_options = {
+    "min. ★☆☆☆☆": 1.0,
+    "min. ★★☆☆☆": 2.0,
+    "min. ★★★☆☆": 3.0,
+    "min. ★★★★☆": 4.0,
+    "min. ★★★★★": 5.0
+}
+ratings = list(rating_options.keys())
 
 # ========== Filter ==========
 if not st.session_state.get("show_results"):
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-        sel_location = st.selectbox("Wo?", cities, index=None, placeholder="Stadt wählen")
+        sel_location = st.selectbox(
+            "Wo?",
+            cities,
+            index=cities.index(st.session_state.get("sel_location")) if st.session_state.get("sel_location") else None,
+            placeholder="Stadt wählen"
+        )
     with col2:
-        sel_radius = st.slider("Suchradius (in km)", min_value=1, max_value=100, value=10)
+        sel_radius = st.slider(
+            "Suchradius (in km)",
+            min_value=1,
+            max_value=100,
+            value=st.session_state.get("sel_radius", 15)
+        )
 
-    sel_category = st.multiselect("Was?", categories, placeholder="Küche wählen")
-    sel_price = st.select_slider("Preiskategorie", options=prices)
-    sel_rating = st.selectbox("Bewertungen", ratings, index=2)
-    submit_button = st.button("Restaurants finden", type="primary")
+    sel_category = st.multiselect(
+        "Was?",
+        categories,
+        default=st.session_state.get("sel_category", []),
+        placeholder="Küche wählen"
+    )
+    sel_price = st.select_slider(
+        "Preiskategorie",
+        options=prices
+    )
+    sel_rating = st.selectbox(
+        "Bewertungen",
+        rating_options,
+        index=ratings.index(st.session_state.get("sel_rating")) if st.session_state.get("sel_rating") else 2
+    )
+    submit_button = st.button(
+        "Restaurants finden",
+        type="primary"
+    )
 
     if submit_button:
         if not sel_location:
@@ -64,43 +100,38 @@ if st.session_state.get("show_results"):
         result_df = search_restaurants(
             locations=None,
             categories=st.session_state["sel_category"],
-            min_rating=ratings.index(st.session_state["sel_rating"])
+            min_rating=rating_options[st.session_state["sel_rating"]]
         )
 
         result_df = result_df.dropna(subset=["latitude", "longitude"])
         result_df = filter_by_radius(result_df, center_lat, center_lon, st.session_state["sel_radius"])
 
+        open_now = result_df[result_df["hours"].apply(is_open_now)]
+        closed_now = result_df[~result_df["hours"].apply(is_open_now)]
+
         # ========== Ergebnisse anzeigen ==========
         with st.container():
-            st.title("Gefundene Restaurants")
             if not result_df.empty:
-                st.write(f"**{len(result_df)} Restaurants im Umkreis von {st.session_state["sel_radius"]} km gefunden.**")
+                if st.button("zurück zur Suche", icon=":material/arrow_back:"):
+                    st.session_state["show_results"] = False
+                    st.rerun()
 
-                for _, row in result_df.iterrows():
-                    is_open = is_open_now(row.get("hours"))
-                    status_label = " 🟢 Jetzt geöffnet" if is_open else " 🔴 Geschlossen"
+                st.title("Gefundene Restaurants")
+                total_found = len(open_now) + len(closed_now)
+                st.write(f"**{total_found} Restaurants im Umkreis von {st.session_state['sel_radius']} km um {st.session_state["sel_location"]} gefunden.**")
 
-                    with st.expander(f"{row['name']} - {row['city']}, {row['state']}  |  {status_label}"):
-                        st.write(f"{row.get('categories')}")
+                if not open_now.empty:
+                    st.markdown('''**:green[jetzt geöffnet]**''')
+                    for _, row in open_now.iterrows():
+                        render_restaurant_expander(row)
 
-                        st.write(f"**{row['name']}** ({round(row['distance_km'], 2)} vom Zentrum)")
-
-                        stars = "★" * int(row['stars']) + "☆" * (5 - int(row['stars']))
-                        st.markdown(f"**{stars}** ({row['stars']} Sterne)")
-
-                        st.text(f"{row['address']}")
-
-                        st.write("**Öffnungszeiten:**")
-                        st.text(format_hours(row.get("hours")))
-
-                        if row.get("latitude") and row.get("longitude"):
-                            st.map(pd.DataFrame({
-                                "latitude": [row["latitude"]],
-                                "longitude": [row["longitude"]],
-                            }))
+                if not closed_now.empty:
+                    st.markdown('''**:red[jetzt geschlossen]**''')
+                    for _, row in closed_now.iterrows():
+                        render_restaurant_expander(row)
             else:
+                if st.button("zurück zur Suche", icon=":material/arrow_back:"):
+                    st.session_state["show_results"] = False
+                    st.rerun()
                 st.info("Keine passenden Restaurants im Umkreis gefunden.")
 
-            if st.button("Zurück zur Suche"):
-                st.session_state["show_results"] = False
-                st.rerun()
