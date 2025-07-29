@@ -25,7 +25,7 @@ Details zum Ablauf der Bereinigung sind in der Datei
 Der Trainingsdatensatz für die Textklassifikation befindet sich im Ordner  [`data`](./data/).  
 Er enthält:
 
-- den finalen Datensatz [`training_dataset`](./data/training_dataset_104k.zip) mit ca. **104.000 Reviews**  
+- den finalen Datensatz [`training_dataset`](./training/training_dataset_70k_balanced_token.zip) mit ca. **70.000 Reviews**  
 - ein ausführliches [`README zur Training`](./training/README.md), das alle Schritte zur Erstellung dokumentiert  
 - alle verwendeten **Scripts**, z. B. für das Sampling  
 
