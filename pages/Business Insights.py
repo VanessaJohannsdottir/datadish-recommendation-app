@@ -6,7 +6,8 @@ import pandas as pd
 
 # ========== Page Config & Layout ==========
 st.set_page_config(
-    page_title="Business Insights"
+    page_title="Business Insights",
+    initial_sidebar_state="collapsed"
 )
 render_layout(page_name="pages")
 

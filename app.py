@@ -8,8 +8,13 @@ import sqlite3
 import pandas as pd
 
 # ========== Config ==========
-st.set_page_config(page_title="DataDish - Restaurant Finder")
-render_layout(page_name="index")
+st.set_page_config(
+    page_title="DataDish - Restaurant Finder",
+    initial_sidebar_state="collapsed"
+)
+render_layout(
+    page_name="index"
+)
 
 if "show_results" not in st.session_state:
     st.session_state.show_results = False
