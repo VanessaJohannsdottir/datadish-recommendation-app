@@ -25,14 +25,39 @@ if not st.session_state.get("show_results"):
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-        sel_location = st.selectbox("Wo?", cities, index=None, placeholder="Stadt wählen")
+        sel_location = st.selectbox(
+            "Wo?",
+            cities,
+            index=cities.index(st.session_state.get("sel_location")) if st.session_state.get("sel_location") else None,
+            placeholder="Stadt wählen"
+        )
     with col2:
-        sel_radius = st.slider("Suchradius (in km)", min_value=1, max_value=100, value=10)
+        sel_radius = st.slider(
+            "Suchradius (in km)",
+            min_value=1,
+            max_value=100,
+            value=st.session_state.get("sel_radius", 15)
+        )
 
-    sel_category = st.multiselect("Was?", categories, placeholder="Küche wählen")
-    sel_price = st.select_slider("Preiskategorie", options=prices)
-    sel_rating = st.selectbox("Bewertungen", ratings, index=2)
-    submit_button = st.button("Restaurants finden", type="primary")
+    sel_category = st.multiselect(
+        "Was?",
+        categories,
+        default=st.session_state.get("sel_category", []),
+        placeholder="Küche wählen"
+    )
+    sel_price = st.select_slider(
+        "Preiskategorie",
+        options=prices
+    )
+    sel_rating = st.selectbox(
+        "Bewertungen",
+        ratings,
+        index=ratings.index(st.session_state.get("sel_rating")) if st.session_state.get("sel_rating") else 2
+    )
+    submit_button = st.button(
+        "Restaurants finden",
+        type="primary"
+    )
 
     if submit_button:
         if not sel_location:
@@ -65,6 +90,11 @@ if st.session_state.get("show_results"):
         with st.container():
             st.title("Gefundene Restaurants")
             if not result_df.empty:
+                if st.button("zurück zur Suche", icon=":material/arrow_back:"):
+                    st.session_state["show_results"] = False
+                    st.rerun()
+
+                st.title("Gefundene Restaurants")
                 st.write(f"**{len(result_df)} Restaurants im Umkreis von {st.session_state["sel_radius"]} km gefunden.**")
 
                 for _, row in result_df.iterrows():
@@ -90,8 +120,8 @@ if st.session_state.get("show_results"):
                                 "longitude": [row["longitude"]],
                             }))
             else:
+                if st.button("zurück zur Suche", icon=":material/arrow_back:"):
+                    st.session_state["show_results"] = False
+                    st.rerun()
                 st.info("Keine passenden Restaurants im Umkreis gefunden.")
 
-            if st.button("Zurück zur Suche"):
-                st.session_state["show_results"] = False
-                st.rerun()
