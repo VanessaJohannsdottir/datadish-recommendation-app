@@ -1,9 +1,8 @@
 import streamlit as st
 from helpers.layout import render_layout
 from helpers.db import get_cities_and_categories, search_restaurants
-from helpers.time import is_open_now, format_hours
+from helpers.time import is_open_now
 from helpers.geo import get_city_coordinates, filter_by_radius
-from helpers.map import render_single_restaurant_map
 from helpers.results import render_restaurant_expander
 
 # ========== Config ==========
