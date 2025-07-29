@@ -18,7 +18,14 @@ if "show_results" not in st.session_state:
 cities, categories = get_cities_and_categories()
 
 prices = ["günstig ($)", "mittel ($$)", "gehoben ($$$)"]
-ratings = ["min. ★☆☆☆☆", "min. ★★☆☆☆", "min. ★★★☆☆", "min. ★★★★☆", "min. ★★★★★"]
+rating_options = {
+    "min. ★☆☆☆☆": 1.0,
+    "min. ★★☆☆☆": 2.0,
+    "min. ★★★☆☆": 3.0,
+    "min. ★★★★☆": 4.0,
+    "min. ★★★★★": 5.0
+}
+ratings = list(rating_options.keys())
 
 # ========== Filter ==========
 if not st.session_state.get("show_results"):
@@ -51,7 +58,7 @@ if not st.session_state.get("show_results"):
     )
     sel_rating = st.selectbox(
         "Bewertungen",
-        ratings,
+        rating_options,
         index=ratings.index(st.session_state.get("sel_rating")) if st.session_state.get("sel_rating") else 2
     )
     submit_button = st.button(
@@ -80,7 +87,7 @@ if st.session_state.get("show_results"):
         result_df = search_restaurants(
             locations=None,
             categories=st.session_state["sel_category"],
-            min_rating=ratings.index(st.session_state["sel_rating"])
+            min_rating=rating_options[st.session_state["sel_rating"]]
         )
 
         result_df = result_df.dropna(subset=["latitude", "longitude"])
