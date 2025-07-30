@@ -1,26 +1,40 @@
-# 📊 Projektübersicht
+# DataDish - finde Dein passendes Restaurant im Handumdrehen
+### Analyse von Restaurantdaten aus dem [YELP-Dataset](https://business.yelp.com/data/resources/open-dataset/)
+👥 [Samaneh Asghari](https://github.com/samaneh-asghari)
+👥 [Karlheinz Nerpel](https://github.com/User-1175)
+👥 [Vanessa Bletz](https://github.com/VanessaJohannsdottir)
 
-### Willkommen zu unserem Projekt!   
 Dieses Dashboard bietet tiefgehende Einblicke in die Welt der Gastronomie, indem es **Bewertungen** und **Geschäftsdaten** analysiert. Entdecke **Trends**, verstehe **Kundenfeedback** und gewinne **wertvolle** Erkenntnisse!
 
-# WegWeiser - finde Dein passendes Restaurant im Handumdrehen
-### Analyse von Restaurantdaten aus dem [YELP-Dataset](https://business.yelp.com/data/resources/open-dataset/)
-[Samaneh Asghari](https://github.com/samaneh-asghari), [Karlheinz Nerpel](https://github.com/User-1175) & [Vanessa Bletz](https://github.com/VanessaJohannsdottir)
+---
 
+## Infos zum Datensatz
+- **6,990,280** Reviews
+- **150,346** Businesses
+- **11** Metropolitan areas
+- **200,100** Pictures
 
-## 📁 Datenstandort
+## TECH-STACK
 
-Die Daten befinden sich im Ordner [`data`](./data/) – dort liegt eine `.zip`-Datei.  
-Diese sollte vor der Nutzung entpackt werden.
+| Task            | Technologie                                 |
+|-----------------|---------------------------------------------|
+| Datenverwaltung | **MySQL, SQLite**                           |
+| Datenanalyse    | **Python, Pandas**                          |
+| Visualisierung  | **[Streamlit](https://docs.streamlit.io/)** |
 
-## 🧹 Datenbereinigung
+---
 
-Die Daten wurden bereits bereinigt.  
-Details zum Ablauf der Bereinigung sind in der Datei  
-[`README zur Bereinigung`](./cleaning/README.md) zu finden.
+## 💬 GOOD TO KNOW
 
+### ➕ Datenstandort
 
-## 🧠 Training
+Die Daten befinden sich im Ordner [`data`](./data/) – dort liegt eine `.zip`-Datei. Diese sollte vor der Nutzung entpackt werden.
+
+### ➕ Datenbereinigung
+
+Die Daten wurden bereits bereinigt. Details zum Ablauf der Bereinigung sind in der Datei[`README zur Bereinigung`](./cleaning/README.md) zu finden.
+
+### ➕ Training
 
 Der Trainingsdatensatz für die Textklassifikation befindet sich im Ordner  [`data`](./data/).  
 Er enthält:
@@ -32,48 +46,26 @@ Er enthält:
 Die Reviews wurden mit mehreren Sampling-Strategien ausgewählt, um eine gute **Balance zwischen Länge, Sternebewertung und Business-Vielfalt** zu erreichen.  
 Ziel ist es, ein robustes Modell für die spätere automatische Multi-Label-Klassifikation zu trainieren.
 
+--- 
+## 🚀 APP STARTEN
+
+### ➕ Datenbank erstellen
+
+Die ZIPs aus `/data` enthalten alle wichtigen CSV-Dateien, die wir für die Erstellung der DB brauchen. 
+Führe das Skript `/db/create_db.py` aus, um eine Datenbank zu erhalten. Diese wird im root-Ordner unter `yelp.db` zu finden sein, wenn das Skript ausgeführt wurde.
+
+### ➕ Streamlit starten
+
+Ist die Datenbank erstellt, können wir die Streamlit-App starten. Dazu in der Console im Projektordner den Befehl `streamlit run app.py` ausführen.
+
 ---
 
-## ALLGEMEIN
-- **6,990,280** Reviews
-- **150,346** Businesses
-- **11** Metropolitan areas
-- **200,100** Pictures
+## 🆕 Mögliche Verbesserungen 🆕
 
-### Nutzereingaben
-
-- Ort/Bundesstaat
-- Kategorie (Sushi, Pizza, BBQ, ...)
-- Bewertungen
-- Preiskategorie (optional)
-  
-**Parameter-Dropdown:**
-- kinderfreundlich
-- hundefreundlich
-- Parkplatz vorhanden
-- Sauberkeit
-- Drunkness-Score (optional)
-- Romance-Score (optional)
-- Lieferung möglich (optional)
-- Reaktionszeit (optional)
-
-
-### App-Ausgabe:
-
-- Bilder
-- Name
-- Adresse / Map
-- Kategorie
-- Bewertungen
-- Preisspanne
-- Öffnungszeiten
-- Parameter-Batches
-
-
-## TECH-STACK
-
-| Task            | Technologie                                 |
-|-----------------|---------------------------------------------|
-| Datenverwaltung | **MySQL, SQLite**                           |
-| Datenanalyse    | **Python, Pandas, Seaborn**                 |
-| Visualisierung  | **[Streamlit](https://docs.streamlit.io/)** |
+| IMPROVEMENT                        | IST                                                           | SOLL                                                    |
+|------------------------------------|---------------------------------------------------------------|---------------------------------------------------------|
+| **Styling-Methode ändern**         | Styling über `st.markdown()`                                  | Komponenten erstellen und vor Ort stylen                |
+| **Ladezustände anpassen**          | keine Ladezustände integriert                                 | -                                                       |
+| **Zeitzonen berücksichtigen**      | bei Öffnungszeiten wird die Zeitzone des Rechners hergenommen | Zeitzone des Standorts verwenden                        |
+| **Öffnungszeiten-Format anpassen** | Öffnungszeiten unformatiert                                   | Öffnungszeiten formatieren                              |
+| **Sortierung der Ergebnisseite**   | Ergebnisse werden nach Reihenfolge aus DB ausgegeben          | Sortierung nach Sternen, Namen oder Entfernung zu Stadt |
