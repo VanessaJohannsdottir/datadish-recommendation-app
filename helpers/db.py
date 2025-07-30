@@ -1,6 +1,8 @@
+import streamlit as st
 import sqlite3
 import pandas as pd
 
+@st.cache_data
 def get_cities_and_categories(db_path="yelp.db"):
     conn = sqlite3.connect(db_path)
     df_cities = pd.read_sql_query("SELECT DISTINCT city, state FROM business WHERE city IS NOT NULL AND state IS NOT NULL", conn)
@@ -12,6 +14,7 @@ def get_cities_and_categories(db_path="yelp.db"):
     categories = sorted(df_categories["category"].dropna().unique().tolist())
     return cities, categories
 
+@st.cache_data
 def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
     base_query = """
         SELECT 
