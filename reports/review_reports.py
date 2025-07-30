@@ -34,13 +34,13 @@ def business_on_map_section(db:data_access.DataAccess):
         cities = st.session_state.business_on_map_section_cities
         all_business = st.session_state.business_on_map_section_all_business
     
-    selected_cities = st.multiselect("Choose cities", cities,["Philadelphia"])
+    selected_cities = st.multiselect("Wähle eine oder mehrere Städte", cities,["Philadelphia"])
     
-    rangecol,_,topcol=st.columns([0.6,0.2, 0.2])
+    rangecol,_,topcol=st.columns([0.6,0.1, 0.3])
     with rangecol:
-        selected_names = st.multiselect("filter by business name", all_business)
+        selected_names = st.multiselect("Name des Lokals auswählene", all_business)
     with topcol:
-        selected_star = st.selectbox("Choose minimum star",[1,2,3,4,5])
+        selected_star = st.selectbox("Ab welcher Bewertung?",[1,2,3,4,5])
     
     if (
         ("business_on_map_section_selected_cities" not in st.session_state or st.session_state.business_on_map_section_selected_cities!=selected_cities) 
@@ -352,7 +352,7 @@ def star(db:data_access.DataAccess):
         """)
 
     
-    selected_lbl = st.multiselect("Choose labels to get insights per stars",db.LABELS,max_selections=2,default=[db.LBL_CLEANLINESS,db.LBL_DIRTY])
+    selected_lbl = st.multiselect("Wähle Labels zur Analyse nach Sternen",db.LABELS,max_selections=2,default=[db.LBL_CLEANLINESS,db.LBL_DIRTY])
     
     farben = [
                 "#F26C4F",   

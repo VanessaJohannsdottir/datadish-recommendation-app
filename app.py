@@ -20,7 +20,7 @@ render_layout(
 
 # Diese Funktion ist verantwortlich für das Laden aller CSV-Dateien und Datensätze.
 # Sie muss zu Beginn der Anwendung ausgeführt werden und darf weder entfernt noch verschoben werden.
-# Das Initialisieren kann bis zu 5 Minuten dauern, da umfangreiche Daten verarbeitet werden.
+# Das Initialisieren kann bis zu 20 Sekunden dauern, da umfangreiche Daten verarbeitet werden.
 # Die geladenen Ergebnisse werden zwischengespeichert (Cache), sodass spätere Zugriffe ohne Verzögerung erfolgen können.
 init_server()
 
