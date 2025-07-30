@@ -3,7 +3,7 @@ from helpers.assets import load_pil_image
 
 def inject_css():
     st.markdown("""
-        <style>
+<style>
             @font-face {
               font-family: 'Questrial';
               font-style: normal;
@@ -20,34 +20,55 @@ def inject_css():
                 font-style: normal;
                 font-display: swap;
             }
-            html, 
-            body, 
-            [class*="css"], 
-            .st-emotion-cache-pomrig, 
-             {
+            html, body, [class*="css"], .st-emotion-cache-pomrig {
                 font-family: 'Questrial', sans-serif;
-               
             }
             h1, h2, h3, h4, .stHeading {
                 font-family: 'Intro', sans-serif;
                 color: white;
             }
-            
-            .stExpander > .st-emotion-cache-9qtauo {
-                font-size: 1.5rem;
-                font-family: "Intro", sans-serif;
+            [data-testid="stExpander"] h3 {
+                font-size: 1.3rem;
+            }
+            [data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] {
+                font-family: 'Intro', sans-serif !important;
+                font-size: 1rem;
             }
             
-            .stSlider > label,
-            .stMultiselect > label {
-                font-family: "Intro", sans-serif;
+            /* === Form Elements === */
+            label >  div {
+                font-family: 'Intro', sans-serif !important;
+                font-size: 1rem;
+                padding: 0.8rem 0 0.5rem;
+                display: block;
+            }
+            input, select, textarea {
+                font-family: 'Questrial', sans-serif;
+            }
+            .st-emotion-cache-hpex6h, .st-emotion-cache-ttupyz {
+                font-family: "Questrial", sans-serif;
+            }
+            button[kind="primary"] {
+                margin-top: 1.5rem;
+            }
+            section.main > div {
+                padding-top: 2.7rem;
+            }
+            .st-emotion-cache-14d5v98 { 
+                display: none;
+            }
+            
+            ## === st.info - Container === ##
+            .stAlert[data-testid="stAlert-info"] {
+                background-color: rgba(139, 10, 32, 0.4);
             }
         </style>
         """, unsafe_allow_html=True)
 
 def render_header(logo_path, header_path):
+    col1, col2, col3 = st.columns(3)
+    col3.image(logo_path, width=200)
 
-    st.image(logo_path, width=200)
     st.write("###")
 
     ## HEADER STARTSEITE

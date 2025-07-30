@@ -66,10 +66,6 @@ if not st.session_state.get("show_results"):
         default=st.session_state.get("sel_category", []),
         placeholder="Küche wählen"
     )
-    sel_price = st.select_slider(
-        "Preiskategorie",
-        options=prices
-    )
     sel_rating = st.selectbox(
         "Bewertungen",
         rating_options,
