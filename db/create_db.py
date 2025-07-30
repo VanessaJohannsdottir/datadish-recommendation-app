@@ -1,29 +1,56 @@
-# Import der CSV-Dateien in meine MySQL-Datenbank
-import sqlite3
+import os
 import pandas as pd
-from sqlalchemy import create_engine
+import sqlite3
+from time import sleep
+from tqdm import tqdm
 
-# SQLite verbinden
-sqlite_conn = sqlite3.connect("../yelp.db")
-sqlite_cursor = sqlite_conn.cursor()
+# Datenbank im Root-Verzeichnis erstellen
+db_path = "../yelp.db"
+conn = sqlite3.connect(db_path)
+cursor = conn.cursor()
 
-# Tabellen auslesen
-sqlite_cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-tables = [row[0] for row in sqlite_cursor.fetchall()]
+# Pfad zum Datenordner
+data_folder = "../data"
 
-# MySQL-Verbindung vorbereiten
-mysql_user = 'root'
-mysql_password = 'DataScienceInstitute'
-mysql_host = '127.0.0.1'  # oder IP
-mysql_db = 'yelp'
+# Alle CSV-Dateien im Datenordner sammeln
+csv_files = [f for f in os.listdir(data_folder) if f.endswith(".csv")]
 
-# Engine für MySQL erstellen
-mysql_engine = create_engine(f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}')
+# Hilfsfunktion zur Erkennung des Tabellennamens aus Dateinamen
+def get_table_name(filename):
+    return filename.replace(".csv", "")
 
-# Tabellen migrieren
-for table in tables:
-    df = pd.read_sql_query(f"SELECT * FROM {table}", sqlite_conn)
-    df.to_sql(table, mysql_engine, if_exists='replace', index=False)
-    print(f"Tabelle '{table}' erfolgreich migriert.")
+print("📥 Importiere CSV-Dateien in Datenbank...\n")
 
-sqlite_conn.close()
+# Jede Datei einzeln mit eigenem Fortschrittsbalken verarbeiten
+for file in csv_files:
+    file_path = os.path.join(data_folder, file)
+    table_name = get_table_name(file)
+
+    print(f"Importiere Tabelle '{table_name}' ...")
+
+    try:
+        df = pd.read_csv(file_path)
+
+        # Simulierter Fortschrittsbalken: Schrittweise durch die Zeilen
+        row_count = len(df)
+        step_size = max(row_count // 50, 1)  # max. 50 Schritte
+
+        with tqdm(total=row_count, ncols=70, bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} Zeilen") as bar:
+            for i in range(0, row_count, step_size):
+                sleep(0.01)  # nur zur visuellen Simulation
+                bar.update(step_size)
+
+        # Tabelle schreiben
+        df.to_sql(table_name, conn, if_exists="replace", index=False)
+
+        print(f"✅ Tabelle '{table_name}' erfolgreich erstellt.\n")
+
+    except Exception as e:
+        print(f"❌ Fehler bei '{table_name}': {e}\n")
+
+# Foreign Keys aktivieren
+cursor.execute("PRAGMA foreign_keys = ON;")
+conn.commit()
+conn.close()
+
+print("✅ Datenbank 'yelp.db' wurde erfolgreich erstellt.")
