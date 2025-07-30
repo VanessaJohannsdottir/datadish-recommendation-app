@@ -68,3 +68,16 @@ def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
     df = pd.read_sql_query(final_query, conn, params=params)
     conn.close()
     return df
+
+@st.cache_data
+def get_reviews_by_business_id(business_id, db_path="yelp.db"):
+    conn = sqlite3.connect(db_path)
+    query = """
+        SELECT review_id, stars, date, text
+        FROM reviews
+        WHERE business_id = ?
+        ORDER BY date DESC
+    """
+    df = pd.read_sql_query(query, conn, params=(business_id,))
+    conn.close()
+    return df
