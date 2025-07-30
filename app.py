@@ -21,7 +21,17 @@ if "show_results" not in st.session_state:
 # ========== Main ==========
 cities, categories = get_cities_and_categories()
 
-prices = ["günstig ($)", "mittel ($$)", "gehoben ($$$)"]
+label_options = {
+    "Freundlichkeit": 'friendly_staff',
+    "Service": 'professional_service',
+    "Geschmack": 'delicious_food',
+    "frische Lebensmittel": 'fresh_ingredients',
+    "Gemütlichkeit": 'cozy_atmosphere',
+    "Sauberkeit": 'cleanliness',
+    "Preis-Leistung": 'good_value'
+}
+labels = list(label_options.keys())
+
 rating_options = {
     "min. ★☆☆☆☆": 1.0,
     "min. ★★☆☆☆": 2.0,
@@ -65,6 +75,11 @@ if not st.session_state.get("show_results"):
         rating_options,
         index=ratings.index(st.session_state.get("sel_rating")) if st.session_state.get("sel_rating") else 2
     )
+    sel_labels = st.pills(
+        "Besondere Wünsche?",
+        label_options,
+        selection_mode="multi"
+    )
     submit_button = st.button(
         "Restaurants finden",
         type="primary"
@@ -79,6 +94,7 @@ if not st.session_state.get("show_results"):
             st.session_state["sel_radius"] = sel_radius
             st.session_state["sel_category"] = sel_category
             st.session_state["sel_rating"] = sel_rating
+            st.session_state["sel_labels"] = sel_labels
             st.rerun()
 
 if st.session_state.get("show_results"):
