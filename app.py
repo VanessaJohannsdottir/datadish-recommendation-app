@@ -5,6 +5,7 @@ from helpers.time import is_open_now
 from helpers.geo import get_city_coordinates, filter_by_radius
 from helpers.map import render_single_restaurant_map
 from helpers.results import render_restaurant_expander
+from reports.load import init_server
 
 # ========== Config ==========
 st.set_page_config(
@@ -14,6 +15,12 @@ st.set_page_config(
 render_layout(
     page_name="index"
 )
+
+# Diese Funktion ist verantwortlich für das Laden aller CSV-Dateien und Datensätze.
+# Sie muss zu Beginn der Anwendung ausgeführt werden und darf weder entfernt noch verschoben werden.
+# Das Initialisieren kann bis zu 20 Sekunden dauern, da umfangreiche Daten verarbeitet werden.
+# Die geladenen Ergebnisse werden zwischengespeichert (Cache), sodass spätere Zugriffe ohne Verzögerung erfolgen können.
+init_server()
 
 if "show_results" not in st.session_state:
     st.session_state.show_results = False

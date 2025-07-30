@@ -30,7 +30,6 @@ def render_restaurant_expander(row):
 
         if pd.notna(row["latitude"]) and pd.notna(row["longitude"]):
             render_single_restaurant_map(row["latitude"], row["longitude"], row['name'])
-            pass
 
         st.divider(width=50)
 
