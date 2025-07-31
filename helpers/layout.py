@@ -59,7 +59,7 @@ def inject_css():
             }
             
             ## === st.info - Container === ##
-            .stAlert[data-testid="stAlert-info"] {
+            .stAlert[data-testid="stAlert"] {
                 background-color: rgba(139, 10, 32, 0.4);
             }
         </style>

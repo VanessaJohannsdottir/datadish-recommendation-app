@@ -5,8 +5,7 @@ filter_labels = {
     "frische Lebensmittel": 'fresh_ingredients',
     "Gemütlichkeit": 'cozy_atmosphere',
     "besonders sauber": 'cleanliness',
-    "ausgezeichnete Preis-Leistung": 'good_value',
-    "positive Erfahrung": 'positive'
+    "ausgezeichnete Preis-Leistung": 'good_value'
 }
 
 all_labels = {
@@ -56,4 +55,63 @@ negative_labels = {
     "schmutzige Umgebung": 'dirty',
     "überteuert": 'overpriced',
     "negativ": 'negative'
+}
+
+filter_categories = [
+    "Acai Bowls",
+    "Afghan",
+    "African",
+    "American (New)",
+    "American (Traditional)",
+    "Bakeries",
+    "Brazilian",
+    "Bubble Tea",
+    "Caribbean",
+    "Chinese",
+    "Chocolatiers & Shops",
+    "Coffee & Tea",
+    "Coffeeshops",
+    "Cuban",
+    "Desserts",
+    "Donuts",
+    "Ethiopian",
+    "French",
+    "Gelato",
+    "German",
+    "Greek",
+    "Hawaiian",
+    "Himalayan/Nepalese",
+    "Ice Cream & Frozen Yogurt",
+    "Indian",
+    "Italian",
+    "Japanese",
+    "Japanese Curry",
+    "Juice Bars & Smoothies",
+    "Korean",
+    "Latin American",
+    "Lebanese",
+    "Mediterranean",
+    "Mexican",
+    "New Mexican Cuisine",
+    "Pakistani",
+    "Persian/Iranian",
+    "Polish",
+    "Shaved Ice",
+    "South African",
+    "Spanish",
+    "Sushi Bars",
+    "Tea Rooms",
+    "Tex-Mex",
+    "Thai",
+    "Traditional Chinese Medicine",
+    "Turkish",
+    "Vietnamese"
+]
+
+rating_options = {
+    "min. ★☆☆☆☆": 1.0,
+    "min. ★★☆☆☆": 2.0,
+    "min. ★★★☆☆": 3.0,
+    "min. ★★★★☆": 4.0,
+    "min. ★★★★★": 5.0
 }
