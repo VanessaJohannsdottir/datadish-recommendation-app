@@ -16,11 +16,11 @@ Dieses Dashboard bietet tiefgehende Einblicke in die Welt der Gastronomie, indem
 
 ## TECH-STACK
 
-| Task            | Technologie                                 |
-|-----------------|---------------------------------------------|
-| Datenverwaltung | **MySQL, SQLite**                           |
-| Datenanalyse    | **Python, Pandas**                          |
-| Visualisierung  | **[Streamlit](https://docs.streamlit.io/)** |
+| Task            | Technologie                                                   |
+|-----------------|---------------------------------------------------------------|
+| Datenverwaltung | **MySQL, SQLite**                                             |
+| Datenanalyse    | **Python, Pandas**                                            |
+| Visualisierung  | **[Streamlit](https://docs.streamlit.io/)** - Version: 1.47.0 |
 
 ---
 
