@@ -1,13 +1,14 @@
 import streamlit as st
-import sqlite3
-import pandas as pd
+
+from helpers.db_connection import get_df
 
 @st.cache_data
-def get_cities_and_categories(db_path="yelp.db"):
-    conn = sqlite3.connect(db_path)
-    df_cities = pd.read_sql_query("SELECT DISTINCT city, state FROM business WHERE city IS NOT NULL AND state IS NOT NULL", conn)
-    df_categories = pd.read_sql_query("SELECT DISTINCT category FROM business_categories", conn)
-    conn.close()
+def get_cities_and_categories():
+    cities_query = "SELECT DISTINCT city, state FROM business WHERE city IS NOT NULL AND state IS NOT NULL"
+    df_cities = get_df(cities_query, db_path="yelp.db")
+
+    categories_query = "SELECT DISTINCT category FROM business_categories"
+    df_categories = get_df(categories_query, db_path="yelp.db")
 
     df_cities["city_state"] = df_cities["city"] + ", " + df_cities["state"]
     cities = sorted(df_cities["city_state"].tolist())
@@ -15,7 +16,7 @@ def get_cities_and_categories(db_path="yelp.db"):
     return cities, categories
 
 @st.cache_data
-def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
+def search_restaurants(locations, categories, min_rating):
     base_query = """
         SELECT 
             b.*, 
@@ -64,20 +65,5 @@ def search_restaurants(locations, categories, min_rating, db_path="yelp.db"):
 
     final_query = f"{base_query} WHERE {' AND '.join(conditions)} GROUP BY b.business_id"
 
-    conn = sqlite3.connect(db_path)
-    df = pd.read_sql_query(final_query, conn, params=params)
-    conn.close()
-    return df
-
-@st.cache_data
-def get_reviews_by_business_id(business_id, db_path="yelp.db"):
-    conn = sqlite3.connect(db_path)
-    query = """
-        SELECT review_id, stars, date, text
-        FROM reviews
-        WHERE business_id = ?
-        ORDER BY date DESC
-    """
-    df = pd.read_sql_query(query, conn, params=(business_id,))
-    conn.close()
-    return df
+    restaurants = get_df(final_query, db_path="yelp.db", params=params)
+    return restaurants

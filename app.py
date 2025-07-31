@@ -1,11 +1,10 @@
 import streamlit as st
 from helpers.layout import render_layout
-from helpers.db import get_cities_and_categories, search_restaurants
 from helpers.time import is_open_now
 from helpers.geo import get_city_coordinates, filter_by_radius
-from helpers.map import render_single_restaurant_map
 from helpers.results import render_restaurant_expander
 from reports.load import init_server
+from helpers.db_restaurant import get_cities_and_categories, search_restaurants
 
 # ========== Config ==========
 st.set_page_config(
@@ -85,20 +84,18 @@ if not st.session_state.get("show_results"):
     )
     submit_button = st.button(
         "Restaurants finden",
-        type="primary"
+        type="primary",
+        disabled=sel_location is None
     )
 
     if submit_button:
-        if not sel_location:
-            st.warning("Bitte eine Stadt auswählen.")
-        else:
-            st.session_state["show_results"] = True
-            st.session_state["sel_location"] = sel_location
-            st.session_state["sel_radius"] = sel_radius
-            st.session_state["sel_category"] = sel_category
-            st.session_state["sel_rating"] = sel_rating
-            st.session_state["sel_labels"] = sel_labels
-            st.rerun()
+        st.session_state["show_results"] = True
+        st.session_state["sel_location"] = sel_location
+        st.session_state["sel_radius"] = sel_radius
+        st.session_state["sel_category"] = sel_category
+        st.session_state["sel_rating"] = sel_rating
+        st.session_state["sel_labels"] = sel_labels
+        st.rerun()
 
 if st.session_state.get("show_results"):
     city, state = st.session_state["sel_location"].split(", ")
@@ -116,8 +113,9 @@ if st.session_state.get("show_results"):
         result_df = result_df.dropna(subset=["latitude", "longitude"])
         result_df = filter_by_radius(result_df, center_lat, center_lon, st.session_state["sel_radius"])
 
-        open_now = result_df[result_df["hours"].apply(is_open_now)]
-        closed_now = result_df[~result_df["hours"].apply(is_open_now)]
+        result_df["open_now"] = result_df["hours"].apply(is_open_now)
+        open_now = result_df[result_df["open_now"]]
+        closed_now = result_df[~result_df["open_now"]]
 
         # ========== Ergebnisse anzeigen ==========
         with st.container():
