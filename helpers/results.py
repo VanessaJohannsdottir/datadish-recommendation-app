@@ -13,7 +13,6 @@ def render_restaurant_expander(row):
 
     with st.expander(f"{row['name']} - {row['city']}, {row['state']} | **{stars}** ({row['stars']} Sterne)"):
         st.subheader(f"**{row['name']}**")
-        st.write(f"{round(row['distance_km'], 2)} vom Zentrum")
         st.write(f"{row.get('categories')}")
 
         st.markdown(f"**{stars}** ({row['stars']} Sterne)")
@@ -27,6 +26,7 @@ def render_restaurant_expander(row):
         st.markdown("**Öffnungszeiten:**")
         st.text(format_hours(row.get("hours")))
 
+        st.write(f"({round(row['distance_km'], 2)} vom Zentrum)")
         st.text(f"{row['address']}, {row['postal_code']} {row['city']}, {row['state']}")
 
         if pd.notna(row["latitude"]) and pd.notna(row["longitude"]):
