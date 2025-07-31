@@ -4,8 +4,9 @@ from helpers.layout import render_layout
 import reports.data_access as da
 import reports.load as ld
 import reports.review_reports as review_reports
+
 # ========== Page Config & Layout ==========
-render_layout(page_name="pages")
+render_layout(page_name="Review Insights")
 
 #Lade Daten einmalig beim Start
 tbl = ld.init_server()
