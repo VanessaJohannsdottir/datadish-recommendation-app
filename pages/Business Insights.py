@@ -7,7 +7,9 @@ from helpers.statistics import (
     get_average_rating_nearby,
     get_rating_trend,
     get_top_competitors_nearby,
-    get_label_frequencies
+    get_label_frequencies,
+    get_monthly_rating_history,
+    get_top_categories_nearby
 )
 
 # === Layout & Konfiguration ===
@@ -39,7 +41,6 @@ with col2:
 
 st.markdown("---")
 
-# Vergleich mit Umgebung
 with st.spinner("Vergleich läuft..."):
     avg_rating = get_average_rating_nearby(business["business_id"], radius_km=20)
 
@@ -55,14 +56,36 @@ with col2:
     )
 
 st.markdown("**Top-Konkurrenten in der Nähe:**")
-competitors = get_top_competitors_nearby(business["business_id"], radius_km=20)
-for c in competitors:
-    st.markdown(f"- {c['name']} ({c['stars']} Sterne)")
+with st.spinner("Lade Konkurrenzdaten..."):
+    competitors = get_top_competitors_nearby(business["business_id"], radius_km=20)
+
+if competitors:
+    for c in competitors:
+        stars_comp = star_rating_string(c["stars"])
+        st.markdown(f"- **{c['name']}**: {stars_comp} ({c['stars']} Sterne)")
+else:
+    st.info("Keine Konkurrenten im Umkreis gefunden.")
+
 
 st.markdown("---")
 
-# === Alle Labels (inkl. Häufigkeit) ===
-st.subheader("Erwähnte Aspekte in Bewertungen")
+
+st.markdown(f"**Häufigste Kategorien im Umkreis** (20 km)")
+with st.spinner("Analysiere Kategorien..."):
+    top_cats = get_top_categories_nearby(business["business_id"], radius_km=20)
+
+if top_cats:
+    cols = st.columns(len(top_cats))
+    for col, cat in zip(cols, top_cats):
+        col.metric(label=cat["category"], value=f"{cat['count']} Betriebe")
+else:
+    st.info("Keine Kategorien im Umkreis gefunden.")
+
+
+st.markdown("---")
+
+
+st.markdown("**Erwähnte Aspekte in Bewertungen**")
 with st.spinner():
     label_freq = get_label_frequencies(business["business_id"])
     if label_freq:
@@ -73,3 +96,19 @@ with st.spinner():
     else:
         st.info("Keine Labels für dieses Business vorhanden.")
 
+
+st.markdown("---")
+
+
+st.markdown("**Entwicklung der Bewertungen im Zeitverlauf**")
+with st.spinner("Lade Bewertungshistorie..."):
+    rating_history = get_monthly_rating_history(business["business_id"])
+
+if rating_history:
+    df_history = pd.DataFrame(rating_history)
+    df_history["month"] = pd.to_datetime(df_history["month"])
+    df_history = df_history.sort_values("month")
+
+    st.line_chart(df_history.set_index("month")["average_rating"])
+else:
+    st.info("Keine Bewertungshistorie verfügbar.")

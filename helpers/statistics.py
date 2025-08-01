@@ -1,8 +1,13 @@
 import pandas as pd
+import sqlite3
+
+from collections import Counter
 
 from helpers.data import get_df
 from helpers.geo import haversine
 from datetime import datetime, timedelta
+from collections import defaultdict
+
 
 def get_average_rating_nearby(business_id: str, radius_km: float = 20.0) -> float:
     query = """
@@ -94,3 +99,83 @@ def get_label_frequencies(business_id: str) -> dict:
     label_counts = df["label"].value_counts()
     frequencies = (label_counts / total_reviews).to_dict()
     return frequencies
+
+def get_monthly_rating_history(business_id, db_path="yelp.db"):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    query = """
+        SELECT date, stars
+        FROM reviews
+        WHERE business_id = ?
+    """
+    cursor.execute(query, (business_id,))
+    reviews = cursor.fetchall()
+    conn.close()
+
+    monthly_ratings = defaultdict(list)
+    for date_str, stars in reviews:
+        try:
+            month = datetime.strptime(date_str[:10], "%Y-%m-%d").strftime("%Y-%m")
+            monthly_ratings[month].append(stars)
+        except Exception as e:
+            print(f"Fehler beim Parsen von '{date_str}': {e}")
+
+    history = []
+    for month in sorted(monthly_ratings.keys()):
+        ratings = monthly_ratings[month]
+        avg = sum(ratings) / len(ratings)
+        history.append({
+            "month": month,
+            "average_rating": round(avg, 2)
+        })
+
+    return history
+
+def get_top_categories_nearby(business_id, radius_km=20, db_path="yelp.db", top_n=5):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT latitude, longitude
+        FROM business
+        WHERE business_id = ?
+    """, (business_id,))
+    result = cursor.fetchone()
+    if not result:
+        return []
+    lat1, lon1 = result
+
+    cursor.execute("""
+        SELECT business_id, latitude, longitude
+        FROM business
+        WHERE business_id != ?
+    """, (business_id,))
+    all_businesses = cursor.fetchall()
+
+    nearby_ids = []
+    for b_id, lat2, lon2 in all_businesses:
+        if lat2 and lon2:
+            dist = haversine(lat1, lon1, lat2, lon2)
+            if dist <= radius_km:
+                nearby_ids.append(b_id)
+
+    if not nearby_ids:
+        return []
+
+    placeholders = ",".join(["?"] * len(nearby_ids))
+
+    query = f"""
+        SELECT category
+        FROM business_categories
+        WHERE business_id IN ({placeholders})
+    """
+    cursor.execute(query, nearby_ids)
+    results = cursor.fetchall()
+    conn.close()
+
+    counter = Counter([row[0] for row in results if row[0]])
+    return [
+        {"category": cat, "count": count}
+        for cat, count in counter.most_common(top_n)
+    ]
