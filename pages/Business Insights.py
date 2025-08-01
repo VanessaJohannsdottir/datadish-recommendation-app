@@ -11,6 +11,8 @@ from helpers.statistics import (
     get_monthly_rating_history,
     get_top_categories_nearby
 )
+from helpers.labels import filter_categories
+import matplotlib.pyplot as plt
 
 # === Layout & Konfiguration ===
 st.set_page_config(
@@ -24,8 +26,14 @@ businesses = get_all_businesses()
 selected_business_name = st.sidebar.selectbox("Wähle ein Business", [b["name"] for b in businesses])
 business = next(b for b in businesses if b["name"] == selected_business_name)
 
+radius_options = [5, 10, 20, 50, 100]
+selected_radius = st.sidebar.selectbox("🔎 Wähle den Suchradius (in km)", radius_options, index=2)
+
 # === Oberer Bereich ===
 st.title(f"{business['name']}")
+st.write(f"{business['address']}, {business['city']}, {business['state']}")
+
+st.markdown("---")
 
 col1, col2 = st.columns([2, 1])
 with col1:
@@ -42,18 +50,38 @@ with col2:
 st.markdown("---")
 
 with st.spinner("Vergleich läuft..."):
-    avg_rating = get_average_rating_nearby(business["business_id"], radius_km=20)
+    avg_rating = get_average_rating_nearby(businesses, business["business_id"], radius_km=selected_radius)
+    delta = round(business["stars"] - avg_rating, 2)
+    stars = star_rating_string(avg_rating)
 
-delta = round(business["stars"] - avg_rating, 2)
-col1, col2 = st.columns([2, 1])
-with col1:
-    st.markdown("**Sternebewertung der Konkurrenz (20 km):**")
-with col2:
-    st.metric(
-        label="Ø im Umkreis",
-        value=f"{avg_rating:.2f} ⭐",
-        delta=f"{delta:+.2f}"
-    )
+    if delta > 0:
+        delta_color = "green"
+        delta_symbol = "▲"
+    elif delta < 0:
+        delta_color = "red"
+        delta_symbol = "▼"
+    else:
+        delta_color = "gray"
+        delta_symbol = "–"
+
+    # Layout mit zwei Spalten
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        st.markdown(f"**Sternebewertung der Konkurrenz ({selected_radius} km):**")
+
+    with col2:
+        st.markdown(
+            f"""
+            <div style='text-align:right'>
+                <small style='color:gray'>Ø im Umkreis</small><br>
+                <span style='font-size: 22px; font-weight: bold;'>{avg_rating:.2f}</span><br>
+                <span style='font-size: 18px;'>{stars}</span><br>
+                <span style='color:{delta_color}; font-size: 14px;'>{delta_symbol} {abs(delta):.2f}</span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 st.markdown("**Top-Konkurrenten in der Nähe:**")
 with st.spinner("Lade Konkurrenzdaten..."):
@@ -70,14 +98,26 @@ else:
 st.markdown("---")
 
 
-st.markdown(f"**Häufigste Kategorien im Umkreis** (20 km)")
+st.markdown(f"#### **Häufigste Kategorien im Umkreis**")
+
 with st.spinner("Analysiere Kategorien..."):
-    top_cats = get_top_categories_nearby(business["business_id"], radius_km=20)
+    top_cats = get_top_categories_nearby(business["business_id"], radius_km=selected_radius)
 
 if top_cats:
-    cols = st.columns(len(top_cats))
-    for col, cat in zip(cols, top_cats):
-        col.metric(label=cat["category"], value=f"{cat['count']} Betriebe")
+    df = pd.DataFrame(top_cats)
+    df = df.rename(columns={"category": "Kategorie", "count": "Anzahl Betriebe"})
+
+    # Gesamte Kategorien anzeigen
+    st.markdown("**Alle Kategorien**")
+    st.table(df.sort_values("Anzahl Betriebe", ascending=False))
+
+    df_filtered = df[df["Kategorie"].isin(filter_categories)]
+
+    if not df_filtered.empty:
+        st.markdown("**Relevante Unterkategorien**")
+        st.table(df_filtered.sort_values("Anzahl Betriebe", ascending=False))
+    else:
+        st.info("Keine Unterkategorien aus der Filterliste in der Umgebung gefunden.")
 else:
     st.info("Keine Kategorien im Umkreis gefunden.")
 
@@ -85,14 +125,26 @@ else:
 st.markdown("---")
 
 
-st.markdown("**Erwähnte Aspekte in Bewertungen**")
-with st.spinner():
+st.markdown("#### Erwähnte Aspekte in Bewertungen")
+with st.spinner("Analysiere Labels..."):
     label_freq = get_label_frequencies(business["business_id"])
+
     if label_freq:
         df_labels = pd.DataFrame.from_dict(label_freq, orient="index", columns=["Anteil"])
         df_labels = df_labels.sort_values("Anteil", ascending=False)
         df_labels["Anteil (%)"] = (df_labels["Anteil"] * 100).round(1)
-        st.bar_chart(df_labels["Anteil (%)"])
+
+        # Matplotlib-Plot
+        fig, ax = plt.subplots(figsize=(12, 5))
+        ax.bar(df_labels.index, df_labels["Anteil (%)"], color="#8b0a20")
+        ax.set_title("Erwähnte Aspekte in Bewertungen", fontsize=14)
+        ax.set_ylabel("Anteil in %", fontsize=12)
+        ax.set_xlabel("Label", fontsize=12)
+        ax.tick_params(axis='x', rotation=45)
+        ax.grid(axis="y", linestyle="--", alpha=0.4)
+        plt.tight_layout()
+        st.pyplot(fig)
+
     else:
         st.info("Keine Labels für dieses Business vorhanden.")
 
@@ -100,7 +152,7 @@ with st.spinner():
 st.markdown("---")
 
 
-st.markdown("**Entwicklung der Bewertungen im Zeitverlauf**")
+st.markdown("#### Entwicklung der Bewertungen im Zeitverlauf")
 with st.spinner("Lade Bewertungshistorie..."):
     rating_history = get_monthly_rating_history(business["business_id"])
 
@@ -109,6 +161,16 @@ if rating_history:
     df_history["month"] = pd.to_datetime(df_history["month"])
     df_history = df_history.sort_values("month")
 
-    st.line_chart(df_history.set_index("month")["average_rating"])
+    # Matplotlib-Plot
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.plot(df_history["month"], df_history["average_rating"], color="#8b0a20", linewidth=2, marker="o", markersize=3)
+    ax.set_title("Entwicklung der Bewertungen im Zeitverlauf", fontsize=14)
+    ax.set_xlabel("Monat", fontsize=12)
+    ax.set_ylabel("Ø Bewertung", fontsize=12)
+    ax.set_ylim(0, 5.2)
+    ax.grid(True, linestyle="--", alpha=0.3)
+    plt.tight_layout()
+    st.pyplot(fig)
+
 else:
     st.info("Keine Bewertungshistorie verfügbar.")

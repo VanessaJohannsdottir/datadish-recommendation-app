@@ -52,7 +52,7 @@ Ziel ist es, ein robustes Modell für die spätere automatische Multi-Label-Klas
 ### ➕ Datenbank erstellen
 
 Die ZIPs aus `/data` enthalten alle wichtigen CSV-Dateien, die wir für die Erstellung der DB brauchen. 
-Führe das Skript `/db/create_db.py` aus, um eine Datenbank zu erhalten. Diese wird im root-Ordner unter `yelp.db` zu finden sein, wenn das Skript ausgeführt wurde.
+Führe beim Initialisierung des Projekts das Skript `/db/create_db.py` aus, um initial eine Datenbank zu erhalten. Diese wird im root-Ordner unter `yelp.db` zu finden sein, wenn das Skript ausgeführt wurde.
 
 ### ➕ Streamlit starten
 

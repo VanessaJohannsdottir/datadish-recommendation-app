@@ -9,32 +9,8 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 
-def get_average_rating_nearby(business_id: str, radius_km: float = 20.0) -> float:
-    query = """
-        SELECT b1.business_id, b1.latitude, b1.longitude, b1.stars,
-               b2.latitude AS center_lat, b2.longitude AS center_lon
-        FROM business b1, business b2
-        WHERE b2.business_id = ?
-          AND b1.business_id != ?
-          AND b1.is_open = 1
-          AND b1.latitude IS NOT NULL AND b1.longitude IS NOT NULL
-    """
-    df = get_df(query, db_path="yelp.db", params=(business_id, business_id))
-    if df.empty:
-        return 0.0
-
-    df["distance_km"] = df.apply(
-        lambda row: haversine(
-            row["latitude"], row["longitude"],
-            row["center_lat"], row["center_lon"]
-        ), axis=1
-    )
-
-    nearby = df[df["distance_km"] <= radius_km]
-    return nearby["stars"].mean() if not nearby.empty else 0.0
-
 def get_rating_trend(business_id: str) -> str:
-    three_months_ago = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
+    three_months_ago = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
     query = """
         SELECT stars, date FROM reviews
         WHERE business_id = ?
@@ -55,6 +31,29 @@ def get_rating_trend(business_id: str) -> str:
         return "fallend"
     else:
         return "gleichbleibend"
+
+
+def get_average_rating_nearby(businesses, business_id, radius_km):
+    """Berechnet den Durchschnitt der Sternebewertungen im Radius um ein Business (Liste statt DataFrame)."""
+
+    # Aktuelles Business finden
+    current = next(b for b in businesses if b["business_id"] == business_id)
+    lat1, lon1 = current["latitude"], current["longitude"]
+
+    # Liste der Distanzen und Sternewerte
+    ratings = []
+    for b in businesses:
+        if b["business_id"] == business_id:
+            continue
+        distance = haversine(lat1, lon1, b["latitude"], b["longitude"])
+        if distance <= radius_km:
+            ratings.append(b["stars"])
+
+    if not ratings:
+        return 0.0
+
+    return round(sum(ratings) / len(ratings), 2)
+
 
 def get_top_competitors_nearby(business_id: str, radius_km: float = 20.0, top_n: int = 3) -> list:
     query = """
