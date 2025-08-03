@@ -99,7 +99,8 @@ def classify_review(text):
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
     }
-    
+    # >>>>>> Und hier ist die Anfrage (Payload), die wir vorbereitet haben.
+    # Wir geben die Rolle an – in der Nachricht sagen wir zu DeepSeek, dass es ein strenger rollenbasierter Klassifizierer ist.
     payload = {
         "model": "deepseek-chat",
         "messages": [
@@ -111,9 +112,11 @@ def classify_review(text):
     }
     
     try:
+        # >>>>>Dann setzen wir den Prompt und schicken die Anfrage an DeepSeek.
         response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
         result = response.json()
+        # Die Antwort bekommen wir hier zurück.
         return result['choices'][0]['message']['content'].strip().replace(" ", "")
     except Exception as e:
         print(f"API Error: {str(e)[:100]}...")

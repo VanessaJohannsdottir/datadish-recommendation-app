@@ -60,6 +60,33 @@ Ist die Datenbank erstellt, können wir die Streamlit-App starten. Dazu in der C
 
 ---
 
+### 🐳 Alternativ: Start mit Docker
+
+Die einfachste Möglichkeit, die Anwendung vollständig zu starten, ist per Docker Compose.  
+Dabei werden automatisch alle Abhängigkeiten installiert und die Anwendung lauffähig gemacht – **kein manuelles Setup nötig**.
+
+#### ✅ So startest du das Projekt:
+
+- 👉 **Wenn du macOS oder Linux verwendest**, führe einfach folgendes Skript im Terminal aus:
+  ```bash
+  ./start.sh
+  ```
+
+- 👉 **Wenn du Windows verwendest**, kannst du einfach einen Doppelklick auf `start.bat` machen oder es in der Eingabeaufforderung ausführen:
+  ```cmd
+  start.bat
+  ```
+
+#### 📝 Hinweise:
+
+- Beim **ersten Start** lädt Docker alle Abhängigkeiten und verarbeitet die **großen Datendateien** (z. B. ZIPs).
+- ⏳ **Das kann einige Minuten dauern**, bitte etwas Geduld mitbringen.
+- Sobald alles fertig ist, wird automatisch dein Browser geöffnet mit der Anwendung unter [`http://localhost:8501`](http://localhost:8501).
+
+> 📌 Hinweis: Stelle sicher, dass Docker und Docker Compose auf deinem System installiert sind.
+
+---
+
 ## 🆕 Mögliche Verbesserungen 🆕
 
 | IMPROVEMENT                        | IST                                                           | SOLL                                                    |

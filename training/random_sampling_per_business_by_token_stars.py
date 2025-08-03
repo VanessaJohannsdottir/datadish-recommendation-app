@@ -24,6 +24,11 @@ df = pd.read_csv(INPUT_CSV)
 df = df[[ID_COL, REVIEW_TEXT_COL, STAR_COL]].dropna()
 
 #  Token-Längen berechnen
+# Zuerst berechnen wir für jede Bewertung, wie viele Tokens (also Wörter bzw. Teile davon) sie enthält. Diese Anzahl speichern wir in einer neuen Spalte im DataFrame.
+
+# Im nächsten Schritt filtern wir alle Bewertungen heraus, deren Token-Anzahl zwischen 200 und 256 liegt.
+
+# Mit diesem Filter behalten wir nur die Bewertungen, die für uns eine passende Länge haben – also weder zu kurz noch zu lang.
 print(" Berechne Tokenlängen...")
 token_lengths = []
 for text in tqdm(df[REVIEW_TEXT_COL], desc="Tokenisierung"):
@@ -39,6 +44,8 @@ df_filtered = df[(df["token_count"] >= TOKEN_MIN) & (df["token_count"] <= TOKEN_
 sampled_rows = []
 
 print(" Samplen pro Stern-Level:")
+
+# Wir wählen pro Sterne-Bewertung gleich viele Reviews, damit die Labels im Training gut verteilt sind.
 for star in sorted(df_filtered[STAR_COL].unique()):
     group = df_filtered[df_filtered[STAR_COL] == star]
     print(f"{star} Sterne: {len(group)} Kandidaten")
